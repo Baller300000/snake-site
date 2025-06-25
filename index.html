@@ -2,6 +2,8 @@
 <html>
 <head>
   <title>Snake Game</title>
+  <!-- ✅ Inline SVG Favicon (green square) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22><rect width=%2216%22 height=%2216%22 fill=%22limegreen%22/></svg>">
   <style>
     body {
       background: #111;
@@ -86,17 +88,17 @@
         snake.pop();
       }
 
-      // Draw everything
+      // Draw background
       ctx.fillStyle = "#222";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Snake
+      // Draw snake
       ctx.fillStyle = "#0f0";
       snake.forEach(part => {
         ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
       });
 
-      // Food
+      // Draw food
       ctx.fillStyle = "red";
       ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
     }
@@ -105,4 +107,3 @@
   </script>
 </body>
 </html>
-
