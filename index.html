@@ -2,7 +2,6 @@
 <html>
 <head>
   <title>Snake Game</title>
-  <!-- Inline green favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22><rect width=%2216%22 height=%2216%22 fill=%22limegreen%22/></svg>">
   <style>
     body {
@@ -33,6 +32,22 @@
       font-size: 2rem;
       color: yellow;
     }
+
+    #restartBtn {
+      display: none;
+      margin-top: 1rem;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      background: limegreen;
+      color: black;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #restartBtn:hover {
+      background: #00c000;
+    }
   </style>
 </head>
 <body>
@@ -40,28 +55,37 @@
   <div id="overlay"></div>
   <canvas id="game" width="400" height="400"></canvas>
   <p>Use arrow keys to move. Press <strong>Space</strong> to pause/resume.</p>
+  <button id="restartBtn" onclick="restartGame()">Restart</button>
 
   <script>
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
     const overlay = document.getElementById("overlay");
+    const restartBtn = document.getElementById("restartBtn");
 
     const gridSize = 20;
     const tileCount = canvas.width / gridSize;
 
-    let snake = [{ x: 10, y: 10 }];
-    let food = { x: 5, y: 5 };
-    let dx = 1;
-    let dy = 0;
-    let gameOver = false;
-    let paused = false;
+    let snake, food, dx, dy, gameOver, paused, gameInterval;
+
+    function resetState() {
+      snake = [{ x: 10, y: 10 }];
+      food = { x: 5, y: 5 };
+      dx = 1;
+      dy = 0;
+      gameOver = false;
+      paused = false;
+      overlay.textContent = "";
+      restartBtn.style.display = "none";
+      placeFood();
+    }
 
     document.addEventListener("keydown", function(e) {
       if (e.key === "ArrowUp" && dy === 0) { dx = 0; dy = -1; }
       if (e.key === "ArrowDown" && dy === 0) { dx = 0; dy = 1; }
       if (e.key === "ArrowLeft" && dx === 0) { dx = -1; dy = 0; }
       if (e.key === "ArrowRight" && dx === 0) { dx = 1; dy = 0; }
-      if (e.code === "Space") {
+      if (e.code === "Space" && !gameOver) {
         paused = !paused;
         overlay.textContent = paused ? "Paused" : "";
       }
@@ -81,14 +105,12 @@
     function drawGrid() {
       ctx.strokeStyle = "rgba(0, 0, 255, 0.4)";
       ctx.lineWidth = 1;
-
       for (let x = 0; x <= canvas.width; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, canvas.height);
         ctx.stroke();
       }
-
       for (let y = 0; y <= canvas.height; y += gridSize) {
         ctx.beginPath();
         ctx.moveTo(0, y);
@@ -102,12 +124,19 @@
 
       const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
-      head.x = (head.x + tileCount) % tileCount;
-      head.y = (head.y + tileCount) % tileCount;
+      //  Check wall collision
+      if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+        gameOver = true;
+        overlay.textContent = "Game Over!";
+        restartBtn.style.display = "inline-block";
+        return;
+      }
 
+      //  Check self-collision
       if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
         gameOver = true;
         overlay.textContent = "Game Over!";
+        restartBtn.style.display = "inline-block";
         return;
       }
 
@@ -121,7 +150,6 @@
 
       ctx.fillStyle = "#222";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
       drawGrid();
 
       ctx.fillStyle = "#0f0";
@@ -133,22 +161,32 @@
       ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
     }
 
-    placeFood();
+    function startGameWithCountdown() {
+      let countdown = 3;
+      overlay.textContent = countdown;
 
-    let countdown = 3;
-    overlay.textContent = countdown;
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+          overlay.textContent = countdown;
+        } else {
+          clearInterval(countdownInterval);
+          overlay.textContent = "Go!";
+          setTimeout(() => { overlay.textContent = ""; }, 1000);
+          gameInterval = setInterval(drawGame, 1000);
+        }
+      }, 1000);
+    }
 
-    const countdownInterval = setInterval(() => {
-      countdown--;
-      if (countdown > 0) {
-        overlay.textContent = countdown;
-      } else {
-        overlay.textContent = "Go!";
-        clearInterval(countdownInterval);
-        setTimeout(() => { overlay.textContent = ""; }, 1000);
-        setInterval(drawGame, 1000); //  Slower: 1 second per move
-      }
-    }, 1000);
+    function restartGame() {
+      clearInterval(gameInterval);
+      resetState();
+      startGameWithCountdown();
+    }
+
+    //  Start
+    resetState();
+    startGameWithCountdown();
   </script>
 </body>
 </html>
