@@ -51,12 +51,11 @@
 
     let snake = [{ x: 10, y: 10 }];
     let food = { x: 5, y: 5 };
-    let dx = 1; // move right by default
+    let dx = 1;
     let dy = 0;
     let gameOver = false;
     let paused = false;
 
-    // Input
     document.addEventListener("keydown", function(e) {
       if (e.key === "ArrowUp" && dy === 0) { dx = 0; dy = -1; }
       if (e.key === "ArrowDown" && dy === 0) { dx = 0; dy = 1; }
@@ -79,18 +78,33 @@
       food = newFood;
     }
 
-    placeFood();
+    function drawGrid() {
+      ctx.strokeStyle = "rgba(0, 0, 255, 0.4)";
+      ctx.lineWidth = 1;
+
+      for (let x = 0; x <= canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      for (let y = 0; y <= canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+    }
 
     function drawGame() {
       if (gameOver || paused) return;
 
       const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
-      // Wrap around
       head.x = (head.x + tileCount) % tileCount;
       head.y = (head.y + tileCount) % tileCount;
 
-      // Collision with self
       if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
         gameOver = true;
         overlay.textContent = "Game Over!";
@@ -105,20 +119,21 @@
         snake.pop();
       }
 
-      // Draw background
       ctx.fillStyle = "#222";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw snake
+      drawGrid();
+
       ctx.fillStyle = "#0f0";
       snake.forEach(part => {
         ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
       });
 
-      // Draw food
       ctx.fillStyle = "red";
       ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
     }
+
+    placeFood();
 
     let countdown = 3;
     overlay.textContent = countdown;
@@ -131,9 +146,10 @@
         overlay.textContent = "Go!";
         clearInterval(countdownInterval);
         setTimeout(() => { overlay.textContent = ""; }, 1000);
-        setInterval(drawGame, 1000);
+        setInterval(drawGame, 2000); //  Slower: 2 seconds per move
       }
     }, 1000);
   </script>
 </body>
 </html>
+
