@@ -17,10 +17,41 @@
       margin-top: 1rem;
     }
 
+    #scoreDisplay {
+      font-size: 1.5rem;
+      margin-top: 0.5rem;
+      color: #0f0;
+    }
+
+    #buttonContainer {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 1rem auto;
+      max-width: 420px;
+    }
+
+    button {
+      cursor: pointer;
+      background-color: #0f0;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 6px;
+      color: black;
+      transition: background-color 0.3s ease;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    button:hover {
+      background-color: #0c0;
+    }
+
     canvas {
       background: #222;
       display: block;
-      margin: 2rem auto;
+      margin: 1rem auto;
       border: 2px solid #0f0;
     }
 
@@ -32,41 +63,32 @@
       font-size: 2rem;
       color: yellow;
     }
-
-    #restartBtn {
-      display: none;
-      margin-top: 1rem;
-      padding: 10px 20px;
-      font-size: 1.2rem;
-      background: limegreen;
-      color: black;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    #restartBtn:hover {
-      background: #00c000;
-    }
   </style>
 </head>
 <body>
   <h1>Snake Game</h1>
+  <div id="scoreDisplay">Score: 0</div>
+
+  <div id="buttonContainer">
+    <button id="restartBtn" onclick="restartGame()" style="display:none;">Restart</button>
+    <button onclick="window.location.href='https://baller300000.github.io/baller-site/'">Back to Home Site</button>
+  </div>
+
   <div id="overlay"></div>
   <canvas id="game" width="400" height="400"></canvas>
   <p>Use arrow keys to move. Press <strong>Space</strong> to pause/resume.</p>
-  <button id="restartBtn" onclick="restartGame()">Restart</button>
 
   <script>
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
     const overlay = document.getElementById("overlay");
     const restartBtn = document.getElementById("restartBtn");
+    const scoreDisplay = document.getElementById("scoreDisplay");
 
     const gridSize = 20;
     const tileCount = canvas.width / gridSize;
 
-    let snake, food, dx, dy, gameOver, paused, gameInterval;
+    let snake, food, dx, dy, gameOver, paused, gameInterval, score;
 
     function resetState() {
       snake = [{ x: 10, y: 10 }];
@@ -75,9 +97,15 @@
       dy = 0;
       gameOver = false;
       paused = false;
+      score = 0;
+      updateScore();
       overlay.textContent = "";
       restartBtn.style.display = "none";
       placeFood();
+    }
+
+    function updateScore() {
+      scoreDisplay.textContent = "Score: " + score;
     }
 
     document.addEventListener("keydown", function(e) {
@@ -124,7 +152,6 @@
 
       const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
-      //  Check wall collision
       if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
         gameOver = true;
         overlay.textContent = "Game Over!";
@@ -132,7 +159,6 @@
         return;
       }
 
-      //  Check self-collision
       if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
         gameOver = true;
         overlay.textContent = "Game Over!";
@@ -143,6 +169,8 @@
       snake.unshift(head);
 
       if (head.x === food.x && head.y === food.y) {
+        score++;
+        updateScore();
         placeFood();
       } else {
         snake.pop();
@@ -184,10 +212,8 @@
       startGameWithCountdown();
     }
 
-    //  Start
     resetState();
     startGameWithCountdown();
   </script>
 </body>
 </html>
-
